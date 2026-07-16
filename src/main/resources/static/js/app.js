@@ -794,7 +794,8 @@ function generateColorfulPdf(bill, billItems, action) {
 
     // ── SAVE OR OPEN ──────────────────────────────────────────────────────────
     if (action === 'download') {
-        doc.save(`Invoice_${bill.id}.pdf`);
+        const fileName = invoiceLabel(bill).replace('#', '') + '.pdf';
+        doc.save(fileName);
         showToast("Invoice PDF downloaded successfully!");
     } else {
         window.open(doc.output('bloburl'), '_blank');
