@@ -4,8 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Grocerly Supermarket Billing</title>
+    <title>Dashboard | Bill Bee Supermarket Billing</title>
+    <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>window.jsPDF = window.jspdf.jsPDF;</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
@@ -13,17 +17,12 @@
     <!-- Left Sidebar -->
     <aside class="sidebar" id="sidebar">
         <a href="index.html" class="sidebar-logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round" class="icon">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <path d="M16 10a4 4 0 0 1-8 0"></path>
-            </svg>
-            <span>Grocerly</span>
+            <img src="images/billbeelogo.png" alt="Bill Bee Logo" style="width:48px; height:48px; object-fit:cover; border-radius:50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <span style="font-size: 20px;">Bill Bee</span>
         </a>
 
         <nav class="sidebar-menu">
-            <span class="sidebar-label">Client App</span>
+            <span class="sidebar-label">Billing</span>
             <li class="sidebar-item active">
                 <a href="index.html">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -48,7 +47,6 @@
                 </a>
             </li>
 
-            <span class="sidebar-label">Admin Panel</span>
             <li class="sidebar-item">
                 <a href="categories.html">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -72,15 +70,14 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="customers.html">
+                <a href="support.html">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
                     </svg>
-                    Customers
+                    Help &amp; Support
                 </a>
             </li>
         </nav>
@@ -103,18 +100,10 @@
             </div>
 
             <div class="topbar-right">
-                <a href="support.html" class="help-support-btn" aria-label="Help and Support">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                        <line x1="12" y1="17" x2="12.01" y2="17" />
-                    </svg>
-                    Help &amp; Support
-                </a>
+
                 <div class="topbar-divider"></div>
                 <div class="user-profile">
-                    <div class="user-avatar-initials" id="topbarAvatar">A</div>
+                    <img src="images/billbeelogo.png" alt="Admin" style="width:40px; height:40px; border-radius:50%; object-fit:cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <div class="user-info">
                         <span class="user-name">Admin</span>
                         <span class="user-role">Billing Admin</span>
@@ -130,7 +119,7 @@
                 <div class="banner-info">
                     <h2 class="banner-title">Daily Grocery Shopping Made Easy</h2>
                     <p class="banner-desc">Manage store stock, generate detailed invoices, and track billing instantly
-                        with the premium Grocerly billing workspace.</p>
+                        with the premium Bill Bee billing workspace.</p>
                     <div class="banner-buttons">
                         <a href="billing.html" class="btn btn-white">Create Bill</a>
                         <a href="products.html" class="btn btn-outline"
@@ -138,16 +127,7 @@
                     </div>
                 </div>
                 <div class="banner-img-container">
-                    <!-- Illustration Placeholder SVG -->
-                    <svg viewBox="0 0 200 200" width="180" class="banner-img">
-                        <rect x="20" y="50" width="160" height="110" rx="10" fill="rgba(255,255,255,0.15)" />
-                        <circle cx="70" cy="110" r="25" fill="rgba(255,255,255,0.2)" />
-                        <circle cx="130" cy="110" r="25" fill="rgba(255,255,255,0.2)" />
-                        <path d="M40 100 L160 100" stroke="white" stroke-width="4" stroke-linecap="round"
-                            opacity="0.3" />
-                        <path d="M40 120 L160 120" stroke="white" stroke-width="4" stroke-linecap="round"
-                            opacity="0.3" />
-                    </svg>
+                    <img src="images/billbeelogo.png" alt="Bill Bee Logo" class="banner-img" style="border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); object-fit: cover; max-height: 180px;">
                 </div>
             </div>
 
@@ -193,19 +173,6 @@
                             <path
                                 d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
                             </path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <span class="stat-label">Registered Customers</span>
-                        <span class="stat-val" id="totalCustomers">0</span>
-                    </div>
-                    <div class="stat-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
                         </svg>
                     </div>
                 </div>

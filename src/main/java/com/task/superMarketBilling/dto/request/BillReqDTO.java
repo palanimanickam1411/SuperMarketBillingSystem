@@ -6,15 +6,17 @@ public class BillReqDTO {
 
     private LocalDate billDate;
     private double totalAmount;
-    private Long customerId;
+    private String customerName;
+    private String customerPhone;
 
     public BillReqDTO() {
     }
 
-    public BillReqDTO(LocalDate billDate, double totalAmount, Long customerId) {
+    public BillReqDTO(LocalDate billDate, double totalAmount, String customerName, String customerPhone) {
         this.billDate = billDate;
         this.totalAmount = totalAmount;
-        this.customerId = customerId;
+        this.customerName = customerName;
+        this.customerPhone = customerPhone;
     }
 
     public LocalDate getBillDate() {
@@ -33,11 +35,19 @@ public class BillReqDTO {
         this.totalAmount = totalAmount;
     }
 
-    public Long getCustomerId() {
-        return customerId;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
     }
 }

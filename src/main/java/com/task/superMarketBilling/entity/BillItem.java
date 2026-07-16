@@ -10,9 +10,9 @@ public class BillItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int quantity;
+    private Integer quantity;
 
-    private double price;
+    private Double price;
 
     @ManyToOne
     @JoinColumn(name = "bill_id")
@@ -25,7 +25,7 @@ public class BillItem {
     public BillItem() {
     }
 
-    public BillItem(Long id, int quantity, double price, Bill bill, Product product) {
+    public BillItem(Long id, Integer quantity, Double price, Bill bill, Product product) {
         this.id = id;
         this.quantity = quantity;
         this.price = price;
@@ -41,19 +41,19 @@ public class BillItem {
         this.id = id;
     }
 
-    public int getQuantity() {
+    public Integer getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(Integer quantity) {
         this.quantity = quantity;
     }
 
-    public double getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 

@@ -1,6 +1,6 @@
 // Session Guard: Check login state except on login.html page
 const isLoginPage = window.location.pathname.endsWith("login.html");
-if (!isLoginPage && localStorage.getItem("isLoggedIn") !== "true") {
+if (!isLoginPage && sessionStorage.getItem("isLoggedIn") !== "true") {
     window.location.href = "login.html";
 }
 
@@ -251,7 +251,7 @@ function saveProfile() {
 
 // Logout handler
 window.logoutUser = function() {
-    localStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("isLoggedIn");
     window.location.href = "login.html";
 };
 
@@ -266,7 +266,7 @@ function showToast(message, type = 'success') {
     
     let icon = '';
     if (type === 'success') {
-        icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${type === 'success' ? '#10b981' : '#ef4444'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${type === 'success' ? '#2e1065' : '#ef4444'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
     } else {
         icon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
     }
@@ -314,13 +314,6 @@ function loadDashboardData() {
         })
         .catch(err => console.error("Error loading products count:", err));
 
-    // 3. Get all customers count
-    fetch(APP_CUSTOMER_API)
-        .then(res => res.json())
-        .then(customers => {
-            document.getElementById("totalCustomers").textContent = customers.length;
-        })
-        .catch(err => console.error("Error loading customers count:", err));
 }
 
 // Render dynamic recent transactions list
@@ -344,7 +337,7 @@ function renderRecentBills(bills) {
     
     let html = "";
     latestBills.forEach(bill => {
-        const custName = bill.customer && bill.customer.customerName ? bill.customer.customerName : "Walk-in Customer";
+        const custName = bill.customerName || "Walk-in Customer";
         const dateFormatted = bill.billDate ? new Date(bill.billDate).toLocaleDateString('en-GB') : "N/A";
         
         html += `
@@ -352,9 +345,11 @@ function renderRecentBills(bills) {
                 <td><strong>#INV-${bill.id}</strong></td>
                 <td>${custName}</td>
                 <td>${dateFormatted}</td>
-                <td><strong>₹${bill.totalAmount.toFixed(2)}</strong></td>
+                <td><strong>₹${(bill.totalAmount || 0).toFixed(2)}</strong></td>
                 <td>
-                    <button class="btn btn-outline btn-sm" onclick="deleteBill(${bill.id})">Delete</button>
+                    <button class="btn btn-outline btn-sm" onclick="viewInvoicePdf(${bill.id})" style="margin-right: 4px;">View</button>
+                    <button class="btn btn-primary btn-sm" onclick="downloadInvoicePdf(${bill.id})" style="margin-right: 4px;">Download PDF</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteBill(${bill.id})">Delete</button>
                 </td>
             </tr>
         `;
@@ -378,4 +373,200 @@ function deleteBill(id) {
         console.error("Error deleting bill:", err);
         showToast("Failed to delete invoice", "error");
     });
+}
+
+// Download invoice PDF from dashboard
+function downloadInvoicePdf(billId) {
+    showToast("Generating PDF... Please wait.");
+    Promise.all([
+        fetch(`${APP_BILL_API}/${billId}`).then(res => res.json()),
+        fetch(`/api/bill-items/bill/${billId}`).then(res => res.json())
+    ])
+    .then(([bill, billItems]) => {
+        if (!billItems || billItems.length === 0) {
+            showToast("No items found for this invoice", "error");
+            return;
+        }
+        generateColorfulPdf(bill, billItems, 'download');
+    })
+    .catch(err => {
+        console.error("Error generating PDF:", err);
+        showToast("Failed to generate PDF", "error");
+    });
+}
+
+function viewInvoicePdf(billId) {
+    showToast("Opening invoice... Please wait.");
+    Promise.all([
+        fetch(`${APP_BILL_API}/${billId}`).then(res => res.json()),
+        fetch(`/api/bill-items/bill/${billId}`).then(res => res.json())
+    ])
+    .then(([bill, billItems]) => {
+        if (!billItems || billItems.length === 0) {
+            showToast("No items found for this invoice", "error");
+            return;
+        }
+        generateColorfulPdf(bill, billItems, 'view');
+    })
+    .catch(err => {
+        console.error("Error opening PDF:", err);
+        showToast("Failed to open PDF", "error");
+    });
+}
+
+function generateColorfulPdf(bill, billItems, action) {
+    const custName = bill.customerName || "Walk-in Customer";
+    const custPhone = bill.customerPhone || "";
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageWidth = 210;
+
+    // ── HEADER BAND ──────────────────────────────────────────────────────────
+    doc.setFillColor(46, 16, 101);          // dark purple
+    doc.rect(0, 0, pageWidth, 45, 'F');
+
+    // Accent stripe (orange/gold, like example)
+    doc.setFillColor(234, 179, 8);
+    doc.rect(0, 38, pageWidth, 7, 'F');
+
+    // Brand name
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(26);
+    doc.text("BILL BEE", 14, 22);
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text("SUPERMARKET", 14, 30);
+
+    // Invoice label on the right
+    doc.setFontSize(9);
+    doc.setTextColor(220, 200, 255);
+    doc.text(`INVOICE NO: #INV-${bill.id}`, 130, 22);
+    doc.text(`Date: ${bill.billDate}`, 130, 29);
+
+    // ── BILL-TO SECTION ───────────────────────────────────────────────────────
+    // Left column: empty (could add store address later)
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("Bill Bee Supermarket", 14, 60);
+    doc.text("Your one-stop billing solution", 14, 65);
+
+    // Right column: customer
+    doc.setTextColor(46, 16, 101);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text("Invoice to:", 130, 56);
+
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(30, 30, 30);
+    doc.text(custName, 130, 65);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(80, 80, 80);
+    if (custPhone) {
+        doc.text(`Phone: ${custPhone}`, 130, 71);
+    }
+
+    // ── ITEMS TABLE ───────────────────────────────────────────────────────────
+    const tableColumn = ["Description", "Qty", "Unit Price (Rs.)", "Subtotal (Rs.)"];
+    const tableRows = [];
+    let subTotal = 0;
+
+    billItems.forEach(item => {
+        const lineTotal = item.price * item.quantity;
+        subTotal += lineTotal;
+        tableRows.push([
+            item.product ? item.product.productName : "Unknown Item",
+            String(item.quantity),
+            item.price.toFixed(2),
+            lineTotal.toFixed(2)
+        ]);
+    });
+
+    doc.autoTable({
+        startY: 80,
+        head: [tableColumn],
+        body: tableRows,
+        theme: 'grid',
+        headStyles: {
+            fillColor: [46, 16, 101],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 10,
+            halign: 'left'
+        },
+        columnStyles: {
+            0: { halign: 'left', cellWidth: 80 },
+            1: { halign: 'center', cellWidth: 20 },
+            2: { halign: 'right', cellWidth: 45 },
+            3: { halign: 'right', cellWidth: 45 }
+        },
+        alternateRowStyles: { fillColor: [243, 232, 255] },
+        styles: { fontSize: 10, cellPadding: 5 },
+        margin: { left: 14, right: 14 }
+    });
+
+    // ── TOTALS SECTION ────────────────────────────────────────────────────────
+    const finalY = doc.lastAutoTable.finalY + 8;
+
+    // Subtotal row
+    doc.setFillColor(243, 232, 255);
+    doc.rect(110, finalY, 86, 9, 'F');
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("Subtotal", 114, finalY + 6);
+    doc.text(`Rs. ${subTotal.toFixed(2)}`, 192, finalY + 6, null, null, "right");
+
+    // GST row (0%)
+    doc.setFillColor(255, 255, 255);
+    doc.rect(110, finalY + 9, 86, 9, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.rect(110, finalY + 9, 86, 9, 'S');
+    doc.text("GST (0%)", 114, finalY + 15);
+    doc.text("Rs. 0.00", 192, finalY + 15, null, null, "right");
+
+    // Grand Total row (dark purple)
+    doc.setFillColor(46, 16, 101);
+    doc.rect(110, finalY + 18, 86, 12, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL", 114, finalY + 26);
+    doc.text(`Rs. ${bill.totalAmount.toFixed(2)}`, 192, finalY + 26, null, null, "right");
+
+    // ── FOOTER BAND ───────────────────────────────────────────────────────────
+    const footerY = finalY + 42;
+
+    // Gold stripe footer
+    doc.setFillColor(234, 179, 8);
+    doc.rect(0, footerY + 20, pageWidth, 4, 'F');
+
+    // Dark footer
+    doc.setFillColor(46, 16, 101);
+    doc.rect(0, footerY + 24, pageWidth, 18, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Thank You for Shopping!", 105, footerY + 34, null, null, "center");
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(220, 200, 255);
+    doc.text("Bill Bee Supermarket  |  Powered by BillBee", 105, footerY + 39, null, null, "center");
+
+    // ── SAVE OR OPEN ──────────────────────────────────────────────────────────
+    if (action === 'download') {
+        doc.save(`Invoice_${bill.id}.pdf`);
+        showToast("Invoice PDF downloaded successfully!");
+    } else {
+        window.open(doc.output('bloburl'), '_blank');
+        showToast("Invoice opened in new tab!");
+    }
 }

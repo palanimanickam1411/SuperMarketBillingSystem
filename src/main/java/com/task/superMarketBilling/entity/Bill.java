@@ -14,20 +14,23 @@ public class Bill {
 
     private LocalDate billDate;
 
-    private double totalAmount;
+    private Double totalAmount;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id")
-    private Customer customer;
+    @Column(name = "customer_name")
+    private String customerName;
+
+    @Column(name = "customer_phone")
+    private String customerPhone;
 
     public Bill() {
     }
 
-    public Bill(Long id, LocalDate billDate, double totalAmount, Customer customer) {
+    public Bill(Long id, LocalDate billDate, double totalAmount, String customerName, String customerPhone) {
         this.id = id;
         this.billDate = billDate;
         this.totalAmount = totalAmount;
-        this.customer = customer;
+        this.customerName = customerName;
+        this.customerPhone = customerPhone;
     }
 
     public Long getId() {
@@ -46,19 +49,27 @@ public class Bill {
         this.billDate = billDate;
     }
 
-    public double getTotalAmount() {
+    public Double getTotalAmount() {
         return totalAmount;
     }
 
-    public void setTotalAmount(double totalAmount) {
+    public void setTotalAmount(Double totalAmount) {
         this.totalAmount = totalAmount;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
     }
 }

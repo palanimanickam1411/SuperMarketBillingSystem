@@ -1,4 +1,4 @@
-const CUSTOMER_API_URL = "/api/customers";
+
 const PRODUCT_API_URL = "/api/products";
 const BILL_API_URL = "/api/bills";
 const BILL_ITEM_API_URL = "/api/bill-items";
@@ -8,41 +8,41 @@ let billItems = [];
 let total = 0;
 
 // Initialize dropdowns
-loadCustomers();
+
 loadProducts();
 
-function loadCustomers() {
-    const customerSelect = document.getElementById("customer");
-    if (!customerSelect) return;
 
-    fetch(CUSTOMER_API_URL)
-        .then(res => res.json())
-        .then(data => {
-            let option = '<option value="">Select Customer</option>';
-            data.forEach(customer => {
-                option += `<option value="${customer.id}">${customer.customerName} (${customer.phone})</option>`;
-            });
-            customerSelect.innerHTML = option;
-        })
-        .catch(err => {
-            console.error("Error loading customers:", err);
-            showToast("Failed to load customer list", "error");
-        });
-}
 
 function loadProducts() {
-    const productSelect = document.getElementById("product");
-    if (!productSelect) return;
+    const container = document.getElementById("productListContainer");
+    if (!container) return;
 
     fetch(PRODUCT_API_URL)
         .then(res => res.json())
         .then(data => {
             products = data;
-            let option = '<option value="">Select Product</option>';
+            if (data.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); font-size: 14px; text-align: center;">No products available.</p>';
+                return;
+            }
+            let html = '';
             data.forEach(product => {
-                option += `<option value="${product.id}">${product.productName}</option>`;
+                const stockColor = product.quantity <= 5 ? '#ef4444' : 'var(--text-main)';
+                html += `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--bg-card); margin-bottom: 6px; border-radius: 6px;">
+                    <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1;">
+                        <input type="checkbox" id="chk_${product.id}" value="${product.id}" onchange="toggleQtyInput(${product.id})" style="margin-top: 4px; transform: scale(1.2);">
+                        <label for="chk_${product.id}" style="font-size: 14px; font-weight: 600; margin: 0; cursor: pointer; flex: 1;">
+                            ${product.productName}
+                            <div style="font-size: 12px; font-weight: 500; color: var(--text-muted); margin-top: 2px;">₹${product.price.toFixed(2)} | Stock: <span style="color: ${stockColor}">${product.quantity}</span></div>
+                        </label>
+                    </div>
+                    <div style="width: 70px;">
+                        <input type="number" id="qty_${product.id}" class="form-control" style="padding: 6px; font-size: 13px; text-align: center;" placeholder="Qty" min="1" disabled>
+                    </div>
+                </div>`;
             });
-            productSelect.innerHTML = option;
+            container.innerHTML = html;
         })
         .catch(err => {
             console.error("Error loading products:", err);
@@ -50,81 +50,77 @@ function loadProducts() {
         });
 }
 
-function onProductSelect() {
-    const productId = parseInt(document.getElementById("product").value);
-    const priceSpan = document.getElementById("productUnitPrice");
-    const stockSpan = document.getElementById("productStock");
-
-    if (isNaN(productId)) {
-        priceSpan.textContent = "₹0.00";
-        stockSpan.textContent = "0 units";
-        return;
-    }
-
-    const product = products.find(p => p.id === productId);
-    if (product) {
-        priceSpan.textContent = `₹${product.price.toFixed(2)}`;
-        stockSpan.textContent = `${product.quantity} units`;
-        
-        // Add visual cues for low stock
-        if (product.quantity <= 5) {
-            stockSpan.style.color = "#ef4444";
-        } else {
-            stockSpan.style.color = "var(--primary)";
-        }
+function toggleQtyInput(productId) {
+    const chk = document.getElementById(`chk_${productId}`);
+    const qtyInput = document.getElementById(`qty_${productId}`);
+    qtyInput.disabled = !chk.checked;
+    if (chk.checked) {
+        qtyInput.value = 1;
+        qtyInput.focus();
+    } else {
+        qtyInput.value = '';
     }
 }
 
-function addItem() {
-    const productId = parseInt(document.getElementById("product").value);
-    const quantity = parseInt(document.getElementById("quantity").value);
-
-    if (isNaN(productId)) {
-        showToast("Please select a product", "error");
-        return;
-    }
-
-    if (isNaN(quantity) || quantity <= 0) {
-        showToast("Please enter a purchase quantity greater than 0", "error");
-        return;
-    }
-
-    const product = products.find(p => p.id === productId);
-    if (!product) {
-        showToast("Product not found", "error");
-        return;
-    }
-
-    // Check current stock limit
-    const existingItem = billItems.find(item => item.product.id === productId);
-    const currentBilledQty = existingItem ? existingItem.quantity : 0;
-    const requestedTotalQty = currentBilledQty + quantity;
-
-    if (requestedTotalQty > product.quantity) {
-        showToast(`Insufficient stock! Billed: ${currentBilledQty}, Stock: ${product.quantity}`, "error");
-        return;
-    }
-
-    // Add or update items in array
-    if (existingItem) {
-        existingItem.quantity = requestedTotalQty;
-    } else {
-        billItems.push({
-            product: product,
-            quantity: quantity,
-            price: product.price
-        });
-    }
-
-    renderBillTable();
-    showToast(`${product.productName} added to invoice`);
+function addSelectedItems() {
+    const container = document.getElementById("productListContainer");
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
     
-    // Clear item inputs and details
-    document.getElementById("product").value = "";
-    document.getElementById("quantity").value = "";
-    document.getElementById("productUnitPrice").textContent = "₹0.00";
-    document.getElementById("productStock").textContent = "0 units";
-    document.getElementById("productStock").style.color = "var(--text-main)";
+    if (checkboxes.length === 0) {
+        showToast("Please select at least one product", "error");
+        return;
+    }
+
+    let addedCount = 0;
+    let hasError = false;
+
+    checkboxes.forEach(chk => {
+        const productId = parseInt(chk.value);
+        const qtyInput = document.getElementById(`qty_${productId}`);
+        const quantity = parseInt(qtyInput.value);
+
+        if (isNaN(quantity) || quantity <= 0) {
+            showToast(`Please enter a valid quantity for selected product`, "error");
+            hasError = true;
+            return;
+        }
+
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+
+        const existingItem = billItems.find(item => item.product.id === productId);
+        const currentBilledQty = existingItem ? existingItem.quantity : 0;
+        const requestedTotalQty = currentBilledQty + quantity;
+
+        if (requestedTotalQty > product.quantity) {
+            showToast(`Insufficient stock for ${product.productName}! Billed: ${currentBilledQty}, Stock: ${product.quantity}`, "error");
+            hasError = true;
+            return;
+        }
+
+        if (existingItem) {
+            existingItem.quantity = requestedTotalQty;
+        } else {
+            billItems.push({
+                product: product,
+                quantity: quantity,
+                price: product.price
+            });
+        }
+        addedCount++;
+        
+        // Reset UI for this item
+        chk.checked = false;
+        toggleQtyInput(productId);
+    });
+
+    if (addedCount > 0 && !hasError) {
+        renderBillTable();
+        showToast(`Added ${addedCount} product(s) to invoice`);
+    } else if (addedCount > 0 && hasError) {
+        renderBillTable();
+        showToast(`Added ${addedCount} product(s), but some had errors.`, "error");
+    }
 }
 
 function renderBillTable() {
@@ -186,19 +182,29 @@ function clearInvoice() {
     billItems = [];
     total = 0;
     renderBillTable();
-    document.getElementById("customer").value = "";
-    document.getElementById("product").value = "";
-    document.getElementById("quantity").value = "";
-    document.getElementById("productUnitPrice").textContent = "₹0.00";
-    document.getElementById("productStock").textContent = "0 units";
+    document.getElementById("customerName").value = "";
+    document.getElementById("customerPhone").value = "";
+    
+    // Clear product selections
+    const container = document.getElementById("productListContainer");
+    if (container) {
+        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(chk => {
+            chk.checked = false;
+            const productId = chk.value;
+            toggleQtyInput(productId);
+        });
+    }
+
     showToast("Invoice layout cleared");
 }
 
 function saveBill() {
-    const customerId = document.getElementById("customer").value;
+    const customerName = document.getElementById("customerName").value.trim();
+    const customerPhone = document.getElementById("customerPhone").value.trim();
 
-    if (!customerId) {
-        showToast("Please select a customer for this invoice", "error");
+    if (!customerName) {
+        showToast("Please enter a customer name for this invoice", "error");
         return;
     }
 
@@ -211,9 +217,8 @@ function saveBill() {
     const bill = {
         billDate: new Date().toISOString().split("T")[0],
         totalAmount: total,
-        customer: {
-            id: parseInt(customerId)
-        }
+        customerName: customerName,
+        customerPhone: customerPhone
     };
 
     // Disable buttons to prevent double-clicks
@@ -244,12 +249,8 @@ function saveBill() {
             const billItem = {
                 quantity: item.quantity,
                 price: item.price,
-                bill: {
-                    id: savedBill.id
-                },
-                product: {
-                    id: item.product.id
-                }
+                billId: savedBill.id,
+                productId: item.product.id
             };
             
             saveItemPromises.push(
@@ -259,6 +260,9 @@ function saveBill() {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify(billItem)
+                }).then(res => {
+                    if (!res.ok) throw new Error("Failed to save bill item");
+                    return res.json();
                 })
             );
 
@@ -280,15 +284,18 @@ function saveBill() {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify(updatedProduct)
+                }).then(res => {
+                    if (!res.ok) throw new Error("Failed to update product stock");
+                    return res.json();
                 })
             );
         });
 
         // Resolve all backend requests
-        return Promise.all([...saveItemPromises, ...updateStockPromises]);
+        return Promise.all([...saveItemPromises, ...updateStockPromises]).then(() => savedBill);
     })
-    .then(() => {
-        showToast("Invoice generated and saved successfully!");
+    .then((savedBill) => {
+        showToast("Invoice saved successfully!");
         setTimeout(() => {
             location.reload();
         }, 1500);

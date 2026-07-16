@@ -1,5 +1,6 @@
 package com.task.superMarketBilling.controller;
 
+import com.task.superMarketBilling.dto.request.BillItemReqDTO;
 import com.task.superMarketBilling.entity.BillItem;
 import com.task.superMarketBilling.service.BillItemService;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,8 @@ public class BillItemController {
     }
 
     @PostMapping
-    public BillItem addBillItem(@RequestBody BillItem billItem) {
-        return billItemService.addBillItem(billItem);
+    public BillItem addBillItem(@RequestBody BillItemReqDTO dto) {
+        return billItemService.addBillItem(dto);
     }
 
     @GetMapping
@@ -30,6 +31,11 @@ public class BillItemController {
     @GetMapping("/{id}")
     public BillItem getBillItemById(@PathVariable Long id) {
         return billItemService.getBillItemById(id);
+    }
+
+    @GetMapping("/bill/{billId}")
+    public List<BillItem> getItemsByBillId(@PathVariable Long billId) {
+        return billItemService.getItemsByBillId(billId);
     }
 
     @DeleteMapping("/{id}")

@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary: #10b981;
-    --primary-hover: #059669;
-    --primary-light: #ecfdf5;
-    --primary-rgb: 16, 185, 129;
+    --primary: #2e1065;
+    --primary-hover: #4c1d95;
+    --primary-light: #f3e8ff;
+    --primary-rgb: 46, 16, 101;
     
     --bg-main: #f8fafc;
     --bg-card: #ffffff;
@@ -293,7 +293,7 @@ body {
 
 /* Banner Card */
 .banner-card {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #2e1065 0%, #4c1d95 100%);
     border-radius: var(--radius-lg);
     padding: 40px;
     color: var(--text-white);
@@ -1026,7 +1026,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #10b981 0%, #064e3b 100%);
+    background: linear-gradient(135deg, #2e1065 0%, #1e1b4b 100%);
     width: 100vw;
     padding: 20px;
 }

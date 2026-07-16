@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Help & Support | Grocerly</title>
+    <title>Help & Support | Bill Bee</title>
+    <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
@@ -11,11 +12,11 @@
     <!-- Left Sidebar -->
     <aside class="sidebar" id="sidebar">
         <a href="index.html" class="sidebar-logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-            <span>Grocerly</span>
+            <img src="images/billbeelogo.png" alt="Bill Bee Logo" style="width:48px; height:48px; object-fit:cover; border-radius:50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <span style="font-size: 20px;">Bill Bee</span>
         </a>
         <nav class="sidebar-menu">
-            <span class="sidebar-label">Client App</span>
+            <span class="sidebar-label">Billing</span>
             <li class="sidebar-item">
                 <a href="index.html">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
@@ -28,7 +29,6 @@
                     Create Bill
                 </a>
             </li>
-            <span class="sidebar-label">Admin Panel</span>
             <li class="sidebar-item">
                 <a href="categories.html">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -41,10 +41,10 @@
                     Products
                 </a>
             </li>
-            <li class="sidebar-item">
-                <a href="customers.html">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    Customers
+            <li class="sidebar-item active">
+                <a href="support.html">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Help &amp; Support
                 </a>
             </li>
         </nav>
@@ -61,13 +61,10 @@
                 <h1 class="page-title">Help &amp; Support</h1>
             </div>
             <div class="topbar-right">
-                <a href="support.html" class="help-support-btn" aria-label="Help and Support">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    Help &amp; Support
-                </a>
+
                 <div class="topbar-divider"></div>
                 <div class="user-profile">
-                    <div class="user-avatar-initials" id="topbarAvatar">A</div>
+                    <img src="images/billbeelogo.png" alt="Admin" style="width:40px; height:40px; border-radius:50%; object-fit:cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <div class="user-info">
                         <span class="user-name">Admin</span>
                         <span class="user-role">Billing Admin</span>
@@ -80,7 +77,7 @@
         <main class="content-container">
 
             <!-- Hero -->
-            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: var(--radius-lg); padding: 40px; color: white; margin-bottom: 32px; display:flex; align-items:center; gap:24px;">
+            <div style="background: linear-gradient(135deg, #2e1065 0%, #4c1d95 100%); border-radius: var(--radius-lg); padding: 40px; color: white; margin-bottom: 32px; display:flex; align-items:center; gap:24px;">
                 <div style="background:rgba(255,255,255,0.2); border-radius:50%; width:72px; height:72px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 </div>
@@ -101,7 +98,7 @@
                             How do I create a new bill?
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                         </summary>
-                        <p style="margin-top:10px; color:var(--text-muted); font-size:14px; line-height:1.7;">Go to <strong>Create Bill</strong> in the sidebar. Select a customer, add products and quantities, then click <strong>Generate Bill</strong> to save the invoice.</p>
+                        <p style="margin-top:10px; color:var(--text-muted); font-size:14px; line-height:1.7;">Go to <strong>Create Bill</strong> in the sidebar. Enter the <strong>customer name</strong> and <strong>phone number</strong>, add products and quantities, then click <strong>Save and Print</strong> to save the invoice and download it as a PDF.</p>
                     </details>
                     <details style="border-bottom:1px solid var(--border-color); padding:16px 0;">
                         <summary style="font-weight:600; cursor:pointer; color:var(--text-main); font-size:15px; list-style:none; display:flex; justify-content:space-between; align-items:center;">
@@ -112,10 +109,10 @@
                     </details>
                     <details style="border-bottom:1px solid var(--border-color); padding:16px 0;">
                         <summary style="font-weight:600; cursor:pointer; color:var(--text-main); font-size:15px; list-style:none; display:flex; justify-content:space-between; align-items:center;">
-                            How do I register a new customer?
+                            How do I download an invoice as PDF?
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
                         </summary>
-                        <p style="margin-top:10px; color:var(--text-muted); font-size:14px; line-height:1.7;">Go to <strong>Customers</strong> in the Admin Panel and click <strong>Add Customer</strong>. Enter the customer's name and contact details, then save.</p>
+                        <p style="margin-top:10px; color:var(--text-muted); font-size:14px; line-height:1.7;">You can download a PDF in two ways: (1) After creating a bill, click <strong>Save and Print</strong> — the invoice PDF downloads automatically. (2) From the <strong>Dashboard</strong>, find the invoice in the <strong>Recent Transactions</strong> table and click <strong>Download PDF</strong> next to it.</p>
                     </details>
                     <details style="padding:16px 0;">
                         <summary style="font-weight:600; cursor:pointer; color:var(--text-main); font-size:15px; list-style:none; display:flex; justify-content:space-between; align-items:center;">
@@ -135,7 +132,7 @@
                     </div>
                     <h3 style="font-weight:700; font-size:16px; color:var(--text-main);">Email Support</h3>
                     <p style="color:var(--text-muted); font-size:13px;">Reach out to our team for any billing or product-related queries.</p>
-                    <a href="mailto:support@grocerly.com" class="btn btn-outline btn-sm">support@grocerly.com</a>
+                    <a href="mailto:support@billbee.com" class="btn btn-outline btn-sm">support@billbee.com</a>
                 </div>
                 <div class="content-card" style="display:flex; flex-direction:column; align-items:center; text-align:center; padding:32px 24px; gap:14px;">
                     <div style="background:var(--primary-light); border-radius:50%; width:56px; height:56px; display:flex; align-items:center; justify-content:center;">
