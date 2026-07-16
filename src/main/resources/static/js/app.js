@@ -655,7 +655,7 @@ function generateColorfulPdf(bill, billItems, action) {
     // Invoice label on the right
     doc.setFontSize(9);
     doc.setTextColor(220, 200, 255);
-    doc.text(`INVOICE NO: #INV-${bill.id}`, 130, 22);
+    doc.text(`INVOICE NO: ${invoiceLabel(bill)}`, 130, 22);
     doc.text(`Date: ${bill.billDate}`, 130, 29);
 
     // ── BILL-TO SECTION ───────────────────────────────────────────────────────
