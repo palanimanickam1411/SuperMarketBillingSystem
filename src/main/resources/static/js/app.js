@@ -1,8 +1,5 @@
-// Session Guard: Check login state except on login.html page
-const isLoginPage = window.location.pathname.endsWith("login.html");
-if (!isLoginPage && sessionStorage.getItem("isLoggedIn") !== "true") {
-    window.location.href = "login.html";
-}
+// Session Guard: Handled by Spring Security on the backend
+// The backend will redirect unauthorized users to login.html
 
 // API endpoints
 const APP_BILL_API = "/api/bills";
@@ -251,8 +248,11 @@ function saveProfile() {
 
 // Logout handler
 window.logoutUser = function() {
-    sessionStorage.removeItem("isLoggedIn");
-    window.location.href = "login.html";
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/logout";
+    document.body.appendChild(form);
+    form.submit();
 };
 
 
@@ -298,6 +298,23 @@ function loadDashboardData() {
             
             document.getElementById("totalInvoices").textContent = billCount;
             document.getElementById("totalRevenue").textContent = `₹${revenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            
+            // Calculate today's stats
+            const today = new Date();
+            const todayString = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+            
+            const todayBills = bills.filter(bill => bill.billDate === todayString);
+            const todayCount = todayBills.length;
+            const todayRev = todayBills.reduce((sum, bill) => sum + bill.totalAmount, 0);
+            
+            const todayRevEl = document.getElementById("todayRevenue");
+            if (todayRevEl) {
+                todayRevEl.textContent = `₹${todayRev.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+            const todayInvEl = document.getElementById("todayInvoices");
+            if (todayInvEl) {
+                todayInvEl.textContent = todayCount;
+            }
             
             renderRecentBills(bills);
         })
@@ -365,7 +382,10 @@ function deleteBill(id) {
     fetch(`${APP_BILL_API}/${id}`, {
         method: "DELETE"
     })
-    .then(() => {
+    .then(res => {
+        if (!res.ok) {
+            throw new Error('Failed to delete invoice');
+        }
         showToast("Invoice deleted successfully");
         loadDashboardData();
     })
