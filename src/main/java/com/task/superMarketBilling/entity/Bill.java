@@ -16,6 +16,9 @@ public class Bill {
 
     private Double totalAmount;
 
+    @Column(name = "monthly_invoice_number")
+    private Integer monthlyInvoiceNumber;
+
     @Column(name = "customer_name")
     private String customerName;
 
@@ -55,6 +58,14 @@ public class Bill {
 
     public void setTotalAmount(Double totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public Integer getMonthlyInvoiceNumber() {
+        return monthlyInvoiceNumber;
+    }
+
+    public void setMonthlyInvoiceNumber(Integer monthlyInvoiceNumber) {
+        this.monthlyInvoiceNumber = monthlyInvoiceNumber;
     }
 
     public String getCustomerName() {

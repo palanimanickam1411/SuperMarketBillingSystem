@@ -32,6 +32,7 @@ public class CategoryService {
 
         if (existing != null) {
             existing.setCategoryName(category.getCategoryName());
+            existing.setGstRate(category.getGstRate());
             return categoryRepository.save(existing);
         }
 

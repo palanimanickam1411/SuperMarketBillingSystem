@@ -20,6 +20,15 @@ public class BillService {
     }
 
     public Bill createBill(Bill bill) {
+        // Assign monthly invoice number: count of bills in same month + 1
+        if (bill.getBillDate() != null) {
+            int year  = bill.getBillDate().getYear();
+            int month = bill.getBillDate().getMonthValue();
+            long count = billRepository.countByYearAndMonth(year, month);
+            bill.setMonthlyInvoiceNumber((int) count + 1);
+        } else {
+            bill.setMonthlyInvoiceNumber(1);
+        }
         return billRepository.save(bill);
     }
 

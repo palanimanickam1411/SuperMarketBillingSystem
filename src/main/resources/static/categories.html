@@ -91,6 +91,16 @@
                         <input type="text" id="categoryName" class="form-control" placeholder="e.g. Canned Foods, Fresh Fruits" required>
                     </div>
                     
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="gstRate">GST Rate (%)</label>
+                        <select id="gstRate" class="form-control" required>
+                            <option value="0">0% (Exempt/Zero - Staples, Fresh Produce)</option>
+                            <option value="5">5% (Standard Grocery - Packaged Staples, Dairy)</option>
+                            <option value="12">12% (Premium - Jams, Juices)</option>
+                            <option value="18">18% (Processed - Chocolates, Biscuits)</option>
+                        </select>
+                    </div>
+                    
                     <div style="display: flex; gap: 10px;">
                         <button class="btn btn-primary" id="saveButton" onclick="saveCategory()" style="flex: 1;">Save Category</button>
                         <button class="btn btn-outline" id="cancelButton" onclick="cancelEdit()" style="display: none;">Cancel</button>
@@ -110,12 +120,13 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Category Name</th>
+                                    <th>GST Rate</th>
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="categoryTable">
                                 <tr>
-                                    <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
                                         Loading categories...
                                     </td>
                                 </tr>

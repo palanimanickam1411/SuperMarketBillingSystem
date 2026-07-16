@@ -17,7 +17,7 @@ function loadCategories() {
             if (data.length === 0) {
                 rows = `
                     <tr>
-                        <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 30px;">
                             No categories found. Use the form to add one.
                         </td>
                     </tr>
@@ -28,8 +28,9 @@ function loadCategories() {
                         <tr>
                             <td><strong>#CAT-${category.id}</strong></td>
                             <td>${category.categoryName}</td>
+                            <td>${category.gstRate || 0}%</td>
                             <td style="text-align: right;">
-                                <button class="btn btn-outline btn-sm" onclick="editCategory(${category.id}, '${category.categoryName.replace(/'/g, "\\'")}')" style="margin-right: 8px;">Edit</button>
+                                <button class="btn btn-outline btn-sm" onclick="editCategory(${category.id}, '${category.categoryName.replace(/'/g, "\\'")}', ${category.gstRate || 0})" style="margin-right: 8px;">Edit</button>
                                 <button class="btn btn-danger btn-sm" onclick="deleteCategory(${category.id})">Delete</button>
                             </td>
                         </tr>
@@ -42,7 +43,7 @@ function loadCategories() {
             console.error("Error loading categories:", err);
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="3" style="text-align: center; color: #ef4444; padding: 30px;">
+                    <td colspan="4" style="text-align: center; color: #ef4444; padding: 30px;">
                         Failed to fetch categories. Please ensure the backend is running.
                     </td>
                 </tr>
@@ -53,6 +54,7 @@ function loadCategories() {
 function saveCategory() {
     const categoryNameInput = document.getElementById("categoryName");
     const categoryIdInput = document.getElementById("categoryId");
+    const gstRateInput = document.getElementById("gstRate");
     
     const categoryName = categoryNameInput.value.trim();
     if (!categoryName) {
@@ -63,7 +65,10 @@ function saveCategory() {
     const editId = categoryIdInput.value;
     const isEdit = editId !== "";
     
-    const category = { categoryName: categoryName };
+    const category = { 
+        categoryName: categoryName,
+        gstRate: parseFloat(gstRateInput.value) || 0
+    };
     const url = isEdit ? `${CATEGORY_API_URL}/${editId}` : CATEGORY_API_URL;
     const method = isEdit ? "PUT" : "POST";
 
@@ -84,6 +89,7 @@ function saveCategory() {
         // Reset form
         categoryNameInput.value = "";
         categoryIdInput.value = "";
+        gstRateInput.value = "0";
         
         // If edit, restore create layout
         if (isEdit) {
@@ -100,9 +106,10 @@ function saveCategory() {
     });
 }
 
-function editCategory(id, name) {
+function editCategory(id, name, gstRate) {
     document.getElementById("categoryId").value = id;
     document.getElementById("categoryName").value = name;
+    document.getElementById("gstRate").value = gstRate || 0;
     
     document.getElementById("formTitle").textContent = "Edit Category";
     document.getElementById("saveButton").textContent = "Update Category";
@@ -115,6 +122,7 @@ function editCategory(id, name) {
 function cancelEdit() {
     document.getElementById("categoryId").value = "";
     document.getElementById("categoryName").value = "";
+    document.getElementById("gstRate").value = "0";
     
     document.getElementById("formTitle").textContent = "Create Category";
     document.getElementById("saveButton").textContent = "Save Category";

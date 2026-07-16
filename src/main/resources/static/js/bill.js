@@ -137,20 +137,28 @@ function renderBillTable() {
             </tr>
         `;
         countBadge.textContent = "0 Items Drafted";
-        updateTotals(0);
+        updateTotals(0, 0);
         return;
     }
 
     let rows = "";
     total = 0;
+    let totalGst = 0;
 
     billItems.forEach((item, index) => {
         const itemAmount = item.price * item.quantity;
         total += itemAmount;
+        
+        const catGst = item.product.category ? (item.product.category.gstRate || 0) : 0;
+        const itemGst = itemAmount * (catGst / 100);
+        totalGst += itemGst;
 
         rows += `
             <tr>
-                <td><strong>${item.product.productName}</strong></td>
+                <td>
+                    <strong>${item.product.productName}</strong>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">GST: ${catGst}%</div>
+                </td>
                 <td>₹${item.price.toFixed(2)}</td>
                 <td>${item.quantity}</td>
                 <td><strong>₹${itemAmount.toFixed(2)}</strong></td>
@@ -163,7 +171,7 @@ function renderBillTable() {
 
     tbody.innerHTML = rows;
     countBadge.textContent = `${billItems.length} Items Drafted`;
-    updateTotals(total);
+    updateTotals(total, totalGst);
 }
 
 function removeItem(index) {
@@ -173,9 +181,13 @@ function removeItem(index) {
     showToast(`Removed ${removedItemName} from invoice`);
 }
 
-function updateTotals(subTotalValue) {
+function updateTotals(subTotalValue, gstAmount = 0) {
+    const grandTotal = subTotalValue + gstAmount;
+
     document.getElementById("subTotal").textContent = `₹${subTotalValue.toFixed(2)}`;
-    document.getElementById("grandTotalText").textContent = `₹${subTotalValue.toFixed(2)}`;
+    const gstAmountEl = document.getElementById("gstAmount");
+    if (gstAmountEl) gstAmountEl.textContent = `₹${gstAmount.toFixed(2)}`;
+    document.getElementById("grandTotalText").textContent = `₹${grandTotal.toFixed(2)}`;
 }
 
 function clearInvoice() {
@@ -200,7 +212,7 @@ function clearInvoice() {
 }
 
 function saveBill() {
-    const customerName = document.getElementById("customerName").value.trim();
+    const customerName = document.getElementById("customerName").value.trim().toUpperCase();
     const customerPhone = document.getElementById("customerPhone").value.trim();
 
     if (!customerName) {
@@ -214,9 +226,16 @@ function saveBill() {
     }
 
     // 1. Prepare bill metadata
+    let totalGst = 0;
+    billItems.forEach(item => {
+        const catGst = item.product.category ? (item.product.category.gstRate || 0) : 0;
+        totalGst += (item.price * item.quantity) * (catGst / 100);
+    });
+    const grandTotal = total + totalGst;
+
     const bill = {
         billDate: new Date().toISOString().split("T")[0],
-        totalAmount: total,
+        totalAmount: grandTotal,
         customerName: customerName,
         customerPhone: customerPhone
     };
@@ -272,9 +291,7 @@ function saveBill() {
                 productName: item.product.productName,
                 price: item.product.price,
                 quantity: newStock,
-                category: {
-                    id: item.product.category ? item.product.category.id : null
-                }
+                category: item.product.category
             };
 
             updateStockPromises.push(

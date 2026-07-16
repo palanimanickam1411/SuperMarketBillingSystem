@@ -288,34 +288,67 @@ function showToast(message, type = 'success') {
 }
 
 // Fetch dashboard totals and fill UI
+let _allBillsCache = [];
+
 function loadDashboardData() {
-    // 1. Get all bills for revenue & invoice stats
+    const now = new Date();
+    const currentYear  = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-indexed
+    const monthName = now.toLocaleString('default', { month: 'long' });
+    const todayString = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+
+    // Set month/year name labels
+    ['currentMonthName', 'currentMonthName2'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = monthName;
+    });
+    const yearLabelEl = document.getElementById('currentYearLabel');
+    if (yearLabelEl) yearLabelEl.textContent = currentYear;
+
+    // 1. Get all bills
     fetch(APP_BILL_API)
         .then(res => res.json())
         .then(bills => {
-            const billCount = bills.length;
-            const revenue = bills.reduce((sum, bill) => sum + bill.totalAmount, 0);
-            
-            document.getElementById("totalInvoices").textContent = billCount;
-            document.getElementById("totalRevenue").textContent = `₹${revenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            
-            // Calculate today's stats
-            const today = new Date();
-            const todayString = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-            
+            _allBillsCache = bills;
+
+            // Filter bills for current month
+            const monthBills = bills.filter(bill => {
+                if (!bill.billDate) return false;
+                const d = new Date(bill.billDate);
+                return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+            });
+
+            // Filter bills for today
             const todayBills = bills.filter(bill => bill.billDate === todayString);
-            const todayCount = todayBills.length;
+
+            // Filter bills for current year
+            const yearBills = bills.filter(bill => {
+                if (!bill.billDate) return false;
+                const d = new Date(bill.billDate);
+                return d.getFullYear() === currentYear;
+            });
+
+            const monthRevenue = monthBills.reduce((sum, bill) => sum + bill.totalAmount, 0);
             const todayRev = todayBills.reduce((sum, bill) => sum + bill.totalAmount, 0);
-            
+
+            // Update monthly stats
+            const totalRevEl = document.getElementById("totalRevenue");
+            if (totalRevEl) totalRevEl.textContent = `₹${monthRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            const totalInvEl = document.getElementById("totalInvoices");
+            if (totalInvEl) totalInvEl.textContent = monthBills.length;
+
+            // Update today's stats
             const todayRevEl = document.getElementById("todayRevenue");
-            if (todayRevEl) {
-                todayRevEl.textContent = `₹${todayRev.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            }
+            if (todayRevEl) todayRevEl.textContent = `₹${todayRev.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
             const todayInvEl = document.getElementById("todayInvoices");
-            if (todayInvEl) {
-                todayInvEl.textContent = todayCount;
-            }
-            
+            if (todayInvEl) todayInvEl.textContent = todayBills.length;
+
+            // Update yearly stats
+            const yearlyInvEl = document.getElementById("yearlyInvoices");
+            if (yearlyInvEl) yearlyInvEl.textContent = yearBills.length;
+
             renderRecentBills(bills);
         })
         .catch(err => {
@@ -331,6 +364,166 @@ function loadDashboardData() {
         })
         .catch(err => console.error("Error loading products count:", err));
 
+}
+
+// Helper: build invoice display label (monthly number if available, else DB id)
+function invoiceLabel(bill) {
+    if (bill.monthlyInvoiceNumber != null && bill.billDate) {
+        const d = new Date(bill.billDate);
+        const mon = d.toLocaleString('default', { month: 'short' }).toUpperCase();
+        const yr  = d.getFullYear();
+        return `#${mon}-${yr}-${String(bill.monthlyInvoiceNumber).padStart(3, '0')}`;
+    }
+    return `#INV-${bill.id}`;
+}
+
+// Open invoice list modal — 'month' or 'today'
+function openInvoicesModal(type) {
+    const modal = document.getElementById("invoicesModal");
+    const titleEl = document.getElementById("invoicesModalTitle");
+    const tbody = document.getElementById("invoicesModalTable");
+    if (!modal || !tbody) return;
+
+    const now = new Date();
+    const currentYear  = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const monthName    = now.toLocaleString('default', { month: 'long' });
+    const todayString  = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+
+    let filteredBills = [];
+    if (type === 'month') {
+        titleEl.textContent = `Invoices — ${monthName} ${currentYear}`;
+        filteredBills = _allBillsCache.filter(bill => {
+            if (!bill.billDate) return false;
+            const d = new Date(bill.billDate);
+            return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+        });
+    } else {
+        titleEl.textContent = `Today's Invoices — ${todayString}`;
+        filteredBills = _allBillsCache.filter(bill => bill.billDate === todayString);
+    }
+
+    // Sort by monthly invoice number asc (or id)
+    filteredBills = [...filteredBills].sort((a, b) => (a.monthlyInvoiceNumber || a.id) - (b.monthlyInvoiceNumber || b.id));
+
+    if (filteredBills.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-muted);">No invoices found for this period.</td></tr>`;
+    } else {
+        let html = '';
+        filteredBills.forEach(bill => {
+            const custName = bill.customerName || "Walk-in Customer";
+            const dateFormatted = bill.billDate ? new Date(bill.billDate).toLocaleDateString('en-GB') : "N/A";
+            html += `
+                <tr>
+                    <td><strong>${invoiceLabel(bill)}</strong></td>
+                    <td>${custName}</td>
+                    <td>${dateFormatted}</td>
+                    <td><strong>₹${(bill.totalAmount || 0).toFixed(2)}</strong></td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="viewInvoicePdf(${bill.id})" style="margin-right:4px;">View</button>
+                        <button class="btn btn-primary btn-sm" onclick="downloadInvoicePdf(${bill.id})" style="margin-right:4px;">Download PDF</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteBillFromModal(${bill.id}, '${type}')">Delete</button>
+                    </td>
+                </tr>`;
+        });
+        tbody.innerHTML = html;
+    }
+
+    modal.classList.add('open');
+}
+
+function closeInvoicesModal(e) {
+    const modal = document.getElementById("invoicesModal");
+    if (!modal) return;
+    if (!e || e.target === modal) {
+        modal.classList.remove('open');
+    }
+}
+
+// Open yearly breakdown modal
+function openYearlyModal() {
+    const modal = document.getElementById("yearlyModal");
+    const titleEl = document.getElementById("yearlyModalTitle");
+    const tbody = document.getElementById("yearlyModalTable");
+    const summaryEl = document.getElementById("yearlyModalSummary");
+    if (!modal || !tbody) return;
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    titleEl.textContent = `Invoice Breakdown — ${currentYear}`;
+
+    // Filter year's bills
+    const yearBills = _allBillsCache.filter(bill => {
+        if (!bill.billDate) return false;
+        return new Date(bill.billDate).getFullYear() === currentYear;
+    });
+
+    if (yearBills.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted);">No invoices found for ${currentYear}.</td></tr>`;
+        if (summaryEl) summaryEl.textContent = '';
+        modal.classList.add('open');
+        return;
+    }
+
+    // Group by month (0-indexed)
+    const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const monthMap = {}; // monthIndex -> { count, revenue }
+    yearBills.forEach(bill => {
+        const m = new Date(bill.billDate).getMonth();
+        if (!monthMap[m]) monthMap[m] = { count: 0, revenue: 0 };
+        monthMap[m].count++;
+        monthMap[m].revenue += bill.totalAmount || 0;
+    });
+
+    // Build sorted rows (only months with data)
+    const sortedMonths = Object.keys(monthMap).map(Number).sort((a, b) => a - b);
+    let html = '';
+    let totalCount = 0;
+    let totalRevenue = 0;
+    sortedMonths.forEach(m => {
+        const { count, revenue } = monthMap[m];
+        totalCount += count;
+        totalRevenue += revenue;
+        html += `
+            <tr>
+                <td><strong>${MONTH_NAMES[m]}</strong></td>
+                <td>${count}</td>
+                <td>₹${revenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            </tr>`;
+    });
+    tbody.innerHTML = html;
+
+    if (summaryEl) {
+        summaryEl.innerHTML = `
+            <span style="margin-right:24px;">Total Invoices: <span style="color:var(--primary);">${totalCount}</span></span>
+            <span>Total Revenue: <span style="color:var(--primary);">₹${totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></span>`;
+    }
+
+    modal.classList.add('open');
+}
+
+function closeYearlyModal(e) {
+    const modal = document.getElementById("yearlyModal");
+    if (!modal) return;
+    if (!e || e.target === modal) {
+        modal.classList.remove('open');
+    }
+}
+
+// Delete bill and refresh modal
+function deleteBillFromModal(id, modalType) {
+    if (!confirm("Are you sure you want to delete this invoice? This cannot be undone.")) return;
+    fetch(`${APP_BILL_API}/${id}`, { method: "DELETE" })
+    .then(res => {
+        if (!res.ok) throw new Error('Failed to delete invoice');
+        showToast("Invoice deleted successfully");
+        loadDashboardData();
+        setTimeout(() => openInvoicesModal(modalType), 700);
+    })
+    .catch(err => {
+        console.error("Error deleting bill:", err);
+        showToast("Failed to delete invoice", "error");
+    });
 }
 
 // Render dynamic recent transactions list
@@ -359,7 +552,7 @@ function renderRecentBills(bills) {
         
         html += `
             <tr>
-                <td><strong>#INV-${bill.id}</strong></td>
+                <td><strong>${invoiceLabel(bill)}</strong></td>
                 <td>${custName}</td>
                 <td>${dateFormatted}</td>
                 <td><strong>₹${(bill.totalAmount || 0).toFixed(2)}</strong></td>
@@ -532,6 +725,12 @@ function generateColorfulPdf(bill, billItems, action) {
 
     // ── TOTALS SECTION ────────────────────────────────────────────────────────
     const finalY = doc.lastAutoTable.finalY + 8;
+    
+    let totalGstAmount = 0;
+    billItems.forEach(item => {
+        const catGst = item.product && item.product.category ? (item.product.category.gstRate || 0) : 0;
+        totalGstAmount += (item.price * item.quantity) * (catGst / 100);
+    });
 
     // Subtotal row
     doc.setFillColor(243, 232, 255);
@@ -542,14 +741,14 @@ function generateColorfulPdf(bill, billItems, action) {
     doc.text("Subtotal", 114, finalY + 6);
     doc.text(`Rs. ${subTotal.toFixed(2)}`, 192, finalY + 6, null, null, "right");
 
-    // GST row (0%)
+    // Total GST row
     doc.setFillColor(255, 255, 255);
     doc.rect(110, finalY + 9, 86, 9, 'F');
     doc.setDrawColor(200, 200, 200);
     doc.setLineWidth(0.3);
     doc.rect(110, finalY + 9, 86, 9, 'S');
-    doc.text("GST (0%)", 114, finalY + 15);
-    doc.text("Rs. 0.00", 192, finalY + 15, null, null, "right");
+    doc.text("Item-wise GST", 114, finalY + 15);
+    doc.text(`Rs. ${totalGstAmount.toFixed(2)}`, 192, finalY + 15, null, null, "right");
 
     // Grand Total row (dark purple)
     doc.setFillColor(46, 16, 101);
@@ -560,9 +759,21 @@ function generateColorfulPdf(bill, billItems, action) {
     doc.text("TOTAL", 114, finalY + 26);
     doc.text(`Rs. ${bill.totalAmount.toFixed(2)}`, 192, finalY + 26, null, null, "right");
 
-    // ── FOOTER BAND ───────────────────────────────────────────────────────────
-    const footerY = finalY + 42;
+    // ── FOOTER & DISCLAIMERS ──────────────────────────────────────────────────
+    let footerY = finalY + 45;
+    
+    // Check if footer spills to next page
+    if (footerY > 270) {
+        doc.addPage();
+        footerY = 20;
+    }
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Note: GST is calculated separately for each product based on its category's applicable GST rate.", 15, footerY);
 
+    footerY += 8;
+    
     // Gold stripe footer
     doc.setFillColor(234, 179, 8);
     doc.rect(0, footerY + 20, pageWidth, 4, 'F');

@@ -13,12 +13,16 @@ public class Category {
     @Column(nullable = false)
     private String categoryName;
 
+    @Column(nullable = false, columnDefinition = "double default 0.0")
+    private double gstRate;
+
     public Category() {
     }
 
-    public Category(Long id, String categoryName) {
+    public Category(Long id, String categoryName, double gstRate) {
         this.id = id;
         this.categoryName = categoryName;
+        this.gstRate = gstRate;
     }
 
     public Long getId() {
@@ -35,5 +39,13 @@ public class Category {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public double getGstRate() {
+        return gstRate;
+    }
+
+    public void setGstRate(double gstRate) {
+        this.gstRate = gstRate;
     }
 }

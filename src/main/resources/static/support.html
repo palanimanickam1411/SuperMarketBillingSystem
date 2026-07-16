@@ -148,7 +148,7 @@
                     </div>
                     <h3 style="font-weight:700; font-size:16px; color:var(--text-main);">Live Chat</h3>
                     <p style="color:var(--text-muted); font-size:13px;">Chat with our support agent in real time for quick help.</p>
-                    <button class="btn btn-primary btn-sm" onclick="alert('Live chat coming soon!')">Start Chat</button>
+                    <button class="btn btn-primary btn-sm" onclick="openChat()">Start Chat</button>
                 </div>
             </div>
 
@@ -157,6 +157,87 @@
 
     <!-- Notification Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Chat Widget -->
+    <div id="chatWidget" class="content-card" style="display:none; position:fixed; bottom:20px; right:20px; width:320px; height:450px; z-index:1000; flex-direction:column; padding:0; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.2); border-radius:12px;">
+        <div style="background:var(--primary); color:white; padding:16px; display:flex; justify-content:space-between; align-items:center; font-weight:600;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Live Chat Support</span>
+            </div>
+            <button onclick="closeChat()" style="background:none; border:none; color:white; cursor:pointer; padding:4px; display:flex;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div id="chatMessages" style="flex:1; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; background:#f9fafb;">
+            <div style="background:#e5e7eb; color:#1f2937; padding:10px 14px; border-radius:12px; align-self:flex-start; max-width:85%; font-size:14px; line-height:1.4;">
+                Hi there! I am your virtual assistant. How can I help you today?
+            </div>
+        </div>
+        <div style="padding:12px; border-top:1px solid var(--border-color); display:flex; gap:10px; background:white; align-items:center;">
+            <input type="text" id="chatInput" placeholder="Type a message..." style="flex:1; padding:10px 14px; border:1px solid var(--border-color); border-radius:20px; outline:none; font-size:14px; transition:border 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border-color)'" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+            <button onclick="sendChatMessage()" style="background:var(--primary); color:white; border:none; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px; margin-top:1px;"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function openChat() {
+            document.getElementById('chatWidget').style.display = 'flex';
+            setTimeout(() => document.getElementById('chatInput').focus(), 100);
+        }
+        function closeChat() {
+            document.getElementById('chatWidget').style.display = 'none';
+        }
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            appendMessage(msg, 'user');
+            input.value = '';
+
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: msg })
+            })
+            .then(res => res.json())
+            .then(data => {
+                appendMessage(data.reply, 'bot');
+            })
+            .catch(err => {
+                appendMessage('Sorry, I am having trouble connecting to the server right now.', 'bot');
+                console.error("Chat error:", err);
+            });
+        }
+        function appendMessage(text, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.style.padding = '10px 14px';
+            msgDiv.style.borderRadius = '12px';
+            msgDiv.style.maxWidth = '85%';
+            msgDiv.style.fontSize = '14px';
+            msgDiv.style.lineHeight = '1.4';
+            
+            if (sender === 'user') {
+                msgDiv.style.background = 'var(--primary)';
+                msgDiv.style.color = 'white';
+                msgDiv.style.alignSelf = 'flex-end';
+                msgDiv.style.borderBottomRightRadius = '4px';
+            } else {
+                msgDiv.style.background = '#e5e7eb';
+                msgDiv.style.color = '#1f2937';
+                msgDiv.style.alignSelf = 'flex-start';
+                msgDiv.style.borderBottomLeftRadius = '4px';
+            }
+            
+            msgDiv.textContent = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
 
     <script src="js/app.js"></script>
 </body>

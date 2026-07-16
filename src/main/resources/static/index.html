@@ -135,7 +135,7 @@
             <section class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-info">
-                        <span class="stat-label">Total Revenue</span>
+                        <span class="stat-label">Revenue This Month (<span id="currentMonthName"></span>)</span>
                         <span class="stat-val" id="totalRevenue">₹0.00</span>
                     </div>
                     <div class="stat-icon">
@@ -146,9 +146,9 @@
                         </svg>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card stat-card-clickable" id="monthlyInvoicesCard" onclick="openInvoicesModal('month')" title="Click to view this month's invoices">
                     <div class="stat-info">
-                        <span class="stat-label">Total Invoices</span>
+                        <span class="stat-label">Invoices This Month (<span id="currentMonthName2"></span>) <span class="click-hint">↗ View All</span></span>
                         <span class="stat-val" id="totalInvoices">0</span>
                     </div>
                     <div class="stat-icon">
@@ -193,9 +193,9 @@
                         </svg>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card stat-card-clickable" id="todayInvoicesCard" onclick="openInvoicesModal('today')" title="Click to view today's invoices">
                     <div class="stat-info">
-                        <span class="stat-label">Today's Invoices</span>
+                        <span class="stat-label">Today's Invoices <span class="click-hint">↗ View All</span></span>
                         <span class="stat-val" id="todayInvoices">0</span>
                     </div>
                     <div class="stat-icon" style="background-color: #fef3c7; color: #d97706;">
@@ -206,6 +206,21 @@
                             <line x1="16" y1="13" x2="8" y2="13"></line>
                             <line x1="16" y1="17" x2="8" y2="17"></line>
                             <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-card stat-card-clickable" id="yearlyInvoicesCard" onclick="openYearlyModal()" title="Click to view this year's monthly breakdown">
+                    <div class="stat-info">
+                        <span class="stat-label">Total Invoices This Year (<span id="currentYearLabel"></span>) <span class="click-hint" style="background:#e0f2fe;color:#0369a1;">↗ Breakdown</span></span>
+                        <span class="stat-val" id="yearlyInvoices">0</span>
+                    </div>
+                    <div class="stat-icon" style="background-color: #e0f2fe; color: #0369a1;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
                     </div>
                 </div>
@@ -244,6 +259,65 @@
 
     <!-- Notification Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Invoices Modal (month / today) -->
+    <div class="inv-modal-overlay" id="invoicesModal" onclick="closeInvoicesModal(event)">
+        <div class="inv-modal-box">
+            <div class="inv-modal-header">
+                <h2 class="inv-modal-title" id="invoicesModalTitle">Invoices</h2>
+                <button class="inv-modal-close" onclick="closeInvoicesModal()" aria-label="Close">&times;</button>
+            </div>
+            <div class="inv-modal-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Invoice ID</th>
+                                <th>Customer Name</th>
+                                <th>Billing Date</th>
+                                <th>Total Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesModalTable">
+                            <tr>
+                                <td colspan="5" style="text-align:center; padding:30px; color:var(--text-muted);">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yearly Breakdown Modal -->
+    <div class="inv-modal-overlay" id="yearlyModal" onclick="closeYearlyModal(event)">
+        <div class="inv-modal-box">
+            <div class="inv-modal-header">
+                <h2 class="inv-modal-title" id="yearlyModalTitle">Yearly Invoice Breakdown</h2>
+                <button class="inv-modal-close" onclick="closeYearlyModal()" aria-label="Close">&times;</button>
+            </div>
+            <div class="inv-modal-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Total Invoices</th>
+                                <th>Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yearlyModalTable">
+                            <tr>
+                                <td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted);">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="yearlyModalSummary" style="margin-top:16px; text-align:right; font-weight:600; font-size:15px; color:var(--text-main);"></div>
+            </div>
+        </div>
+    </div>
 
     <script src="js/app.js"></script>
 </body>
